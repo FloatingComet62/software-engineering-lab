@@ -13,7 +13,7 @@
 \makeatletter \newcommand{\BvrSetLabInstructor}[1]{%
   \gdef\Bvr@LabInstructor{#1}}
 % default
-\newcommand{\Bvr@LabInstructor}{Dr. Anushka}
+\newcommand{\Bvr@LabInstructor}{Ms. Anushka}
 % public accessor
 \newcommand{\BvrLabInstructorValue}{\Bvr@LabInstructor}
 \makeatother
@@ -37,9 +37,9 @@
 
 % -----------------------------------------------------
 
-\title{Grievance-Resolution System for a Tier-2/3 City}
+\title{Multiplayer competitive type racing website}
 
-\BvrSetLabInstructor{Dr. Anushka}
+\BvrSetLabInstructor{Ms. Anushka}
 
 \BvrSubtitle{%
   Project Proposal for UCS503P  \\
@@ -63,89 +63,102 @@
   Shivanjay, CSED%
   \thanks{Roll No: \texttt{1024240074}, %
     Email: \texttt{sshivanjay\_be24\@thapar.edu}}
-  \and 
 }
 
 \date{\today}
-
 \begin{document}
 \maketitle
 
 \section{Higher-order goal%
   \BvrHint{\ldots secondary framing}}
-This project aims to improve sustainable urban
-governance by reducing the time and effort required to
-resolve citizen issues. While the topic is broader than
-any single municipality, the immediate engineering
-objective is to translate \emph{efficient public
-  service delivery} into a measurable, deployable
-software solution.
+This project aims to make a claimed digital skill
+\emph{verifiable}. Typing proficiency is routinely asserted on
+resumes and used as a screening filter for data-entry,
+transcription, support, yet the number itself is
+almost always self-reported or produced by a browser test that
+performs no server-side validation. While the broader topic is
+trustworthy skill assessment, the immediate engineering objective
+is to translate \emph{verifiable, competitively-ranked skill
+  measurement} into a measurable, deployable software solution.
 
 \section{Time-to-value %
 \BvrHint{\ldots primary heuristic}}
 \begin{itemize}[leftmargin=0.7cm]
-    \item We will deliver meaningful increments quickly by prototyping the core user workflow and validating it with users within a short iteration window.
+    \item We will deliver meaningful increments quickly by first shipping the core typing loop end-to-end (type $\rightarrow$ server-recorded result $\rightarrow$ visible score) and validating it with users within a short iteration window.
     \item We will prioritize fast feedback over perfection by using weekly iterations (and targeting CI-backed automation early) to reduce release friction.
     \item Success is defined by what can be delivered and measured in the first iteration, then improved based on user feedback.
 \end{itemize}
 
 %---------------------%
 \section{Problem Statement}
-Citizens in a tier-2/3 Indian city face delays and uncertainty when reporting local issues (e.g., streetlight outages, water leakage, garbage accumulation, road potholes). Common pain points include:
+A user who wants to prove and improve their typing speed has no
+credible, competitive place to do so. Common pain points include:
 \begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Fragmentation:} complaints are often made via multiple channels (calls, social media, paper forms), causing lost context.
-    \item \textbf{Low transparency:} citizens cannot easily see the status of their complaint (e.g., ``received'', ``assigned'', ``in progress'', ``resolved'').
-    \item \textbf{Slow coordination:} departments/field teams lack a unified, trackable workflow with clear ownership.
-    \item \textbf{Poor data quality:} duplicate or incomplete reports force rework and extend resolution time.
+    \item \textbf{Unverifiable results:} typical typing tests compute speed entirely in the browser, so a reported WPM can be produced by pasting, by a script, or by editing client state. The score carries no trust.
+    \item \textbf{No meaningful competition:} practice tools are single-player. A user cannot race a skill-matched opponent, which removes the pressure conditions under which real performance is actually tested.
+    \item \textbf{No persistent skill measure:} a single best-ever score is a noisy outlier, not a skill estimate. There is no rating that converges over many attempts the way chess ratings do.
+    \item \textbf{Fragmented progress data:} attempts are not retained, so a user cannot see improvement over time or compare against peers at a similar level.
 \end{itemize}
 
-\textbf{Why this matters now (contextual relevance):} In an urban setting with limited staff bandwidth, even small process improvements can noticeably reduce resolution delays and repeated submissions.
+\textbf{Why this matters now (contextual relevance):} remote
+hiring and remote assessment have made screening filters more
+common while making them easier to fake. A low-cost, self-serve
+platform that produces a defensible speed figure is directly
+useful in exactly the hiring markets where such filters are
+applied.
 
 \section{Proposed Solution %
 \BvrHint{\ldots Software Proposition}}
 \subsection{Overview}
-Build a \textbf{web-based} ``Grievance-to-Resolution'' system with the following components:
+Build a \textbf{web-based} competitive typing platform
+(``I See I Type'') with the following components:
 \begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Citizen submission portal:} users submit an issue with photo (optional), category, and locality/ward.
-    \item \textbf{Automated triage:} basic duplicate detection and completeness checks.
-    \item \textbf{Department workflow:} assign issues to relevant department/team and update statuses.
-    \item \textbf{Status transparency:} citizens track status and receive notifications when resolved.
-    \item \textbf{Admin/ops dashboard:} performance summaries (resolution time, backlog).
+    \item \textbf{Real-time race lobbies:} multiple players receive an identical prompt and see opponents' live progress as they type.
+    \item \textbf{Server-authoritative scoring:} speed and accuracy are computed from server-side timestamps, not from numbers the client reports.
+    \item \textbf{Rating system:} an Elo-style rating updated after every rated race, giving each player a converging skill estimate rather than a best-score.
+    \item \textbf{Fair-play validation:} bounded statistical checks on keystroke timing plus paste and impossible-rate detection; results are marked \emph{verified} or \emph{flagged}.
+    \item \textbf{Contests and leaderboards:} scheduled events with standings and a post-contest rating update, plus global and mode-wise leaderboards.
+    \item \textbf{Player profile:} race history, WPM/accuracy trend, and an activity heatmap.
 \end{itemize}
 %---------------------%
 
 \subsection{Core workflow}
 \begin{enumerate}[leftmargin=0.7cm]
-    \item Citizen creates a complaint and receives a complaint ID immediately.
-    \item System validates completeness and suggests possible duplicates (lightweight similarity on text/category and approximate location).
-    \item Department staff update status (Received $\rightarrow$ Assigned $\rightarrow$ In Progress $\rightarrow$ Resolved).
-    \item Citizen views status updates and resolution notes.
+    \item Player signs in and either enters the quick-match queue or creates a lobby (rated or unrated).
+    \item The server groups players by rating proximity, distributes an identical prompt, and starts a synchronised countdown.
+    \item Clients stream typing progress; the server timestamps each update and broadcasts live positions to the lobby.
+    \item The race terminates on completion or timeout; the server computes WPM and accuracy from its own timestamps.
+    \item Fair-play checks run on the recorded keystroke trace, marking the result verified or flagged.
+    \item Ratings are updated, the result is written to history, and leaderboards and profiles reflect the change.
 \end{enumerate}
 
-\subsection{Operational constraints for an educational, tier-2/3 setting}
+\subsection{Operational constraints for an educational, resource-constrained setting}
 \begin{itemize}[leftmargin=0.7cm]
-    \item Keep the solution usable on low-to-mid range devices via responsive web design.
-    \item Avoid dependence on advanced research algorithms; focus on workflow, automation, and system correctness.
+    \item Keep the solution usable on low-to-mid range devices via responsive web design and a keyboard-first interface.
+    \item Tolerate unstable networks: progress is sent as periodic ticks with reconciliation, and a race degrades to unrated rather than failing outright if a connection is lost.
+    \item Avoid dependence on advanced research algorithms; fair-play detection uses bounded statistical heuristics, not learned models.
     \item Design for deployability using common web hosting and managed databases.
 \end{itemize}
 
 \section{Solution Approach %
 \BvrHint{\ldots Engineering focus}}
-This is an engineering course project, so we focus on scalable administrative and workflow aspects rather than novel algorithm research.
+This is an engineering course project, so we focus on
+distributed state management, workflow and system correctness
+rather than novel algorithm research.
 
 \subsection{Web architecture %
 \BvrHint{\ldots web-based solution}}
-A typical 3-tier web architecture:
+A typical 3-tier web architecture, extended with a real-time channel:
 \begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Frontend:} A interactive UI for the user to enjoy their typing experience and compete with others
-    \item \textbf{Backend API:} Authentication, Real time lobby states, Leaderboards, Contests
-    \item \textbf{Database:} Users, User statistics, Game history, Leaderboards, Contests.
+    \item \textbf{Frontend:} an interactive typing surface with character-level feedback, live opponent progress, and lobby, contest and profile screens.
+    \item \textbf{Backend API:} authentication, lobby lifecycle and real-time state over a persistent bidirectional connection, result validation, rating computation, leaderboards and contests.
+    \item \textbf{Database:} users, prompt corpus, races, per-race results, rating history, contests and leaderboards.
 \end{itemize}
 
 \subsection{CI/CD and fast delivery enabler}
 CI/CD will be used to:
 \begin{itemize}[leftmargin=0.7cm]
-    \item Automatically build and run tests on every change.
+    \item Automatically type-check, lint, build and run tests on every change.
     \item Produce repeatable deployment artifacts to staging.
     \item Enable safe and frequent releases of incremental features.
 \end{itemize}
@@ -155,17 +168,19 @@ CI/CD will be used to:
 We define success using measurable metrics tied to the core workflow.
 
 \subsection{Primary evaluation metric}
-\textbf{Latency:} How fast does the real time games update for each client
+\textbf{Latency:} how quickly one player's progress becomes
+visible to the others in the same race.
 \begin{itemize}[leftmargin=0.7cm]
-    \item Target: median latency $\le$ 100ms during the game.
-    \item Attribution: measured from client side and server side timestamps
+    \item Target: median end-to-end update latency $\le$ 100\,ms during a race, reported alongside the 95th percentile.
+    \item Attribution: each progress event carries a client send timestamp; the server records receive and broadcast timestamps and the receiving client records render time, so the delay is attributable to network, server processing or rendering rather than reported as one opaque number.
 \end{itemize}
 
 \subsection{Secondary evaluation metrics}
 \begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{User Experience} How easy it is for the user to setup an account and a lobby for a rated or unrated game.
-    \item \textbf{Fair play:} Ensuring that no automated scripts are racking up points
-    \item \textbf{SLA:} High availability for the users even during high loads
+    \item \textbf{User experience:} number of actions and elapsed time from landing page to the start of a first race, measured for a new account.
+    \item \textbf{Fair play:} on a set of deliberately scripted runs, the fraction correctly flagged, reported together with the false-positive rate on genuine human runs.
+    \item \textbf{Rating quality:} how quickly a new player's rating stabilises, measured as the race count after which rating change stays within a fixed band.
+    \item \textbf{Service Level Agreements (SLA):} availability and response times sustained under a target number of concurrent races.
 \end{itemize}
 
 \section{Scalability %
@@ -173,14 +188,15 @@ We define success using measurable metrics tied to the core workflow.
 The proposition should scale in both theoretical and practical senses.
 
 \begin{enumerate}[leftmargin=0.7cm]
-    \item \textbf{Scalable (theoretically):} The system should support growth in number of active players and account creations:
+    \item \textbf{Scalable (theoretically):} the system should support growth in concurrent races and registered players by:
     \begin{itemize}[leftmargin=0.7cm]
         \item decoupling components (frontend/backend),
-        \item ensuring the api requests are optimized
-        \item enabling pagination and indexing for common queries,
+        \item keeping ephemeral lobby state in a shared store so API instances stay horizontally scalable,
+        \item batching progress broadcasts instead of relaying every keystroke individually,
+        \item enabling pagination and indexing for leaderboard and history queries.
     \end{itemize}
-    
-    \item \textbf{Operationally deployable (practically):} The system should run on common web hosting:
+
+    \item \textbf{Operationally deployable (practically):} the system should run on common web hosting:
     \begin{itemize}[leftmargin=0.7cm]
         \item managed database,
         \item containerized or platform-hosted deployment,
@@ -189,37 +205,52 @@ The proposition should scale in both theoretical and practical senses.
 \end{enumerate}
 
 \section{Engine availability heuristic}
-A low latency set of ``engines'' (tooling/services) is available to implement this as a web-based project:
+A low latency set of ``engines'' (tooling/services) is available
+to implement this as a web-based project:
 \begin{itemize}[leftmargin=0.7cm]
-    \item Web framework for REST APIs and templated/reactive pages.
-    \item Managed relational or document database.
+    \item Web framework supporting both REST APIs and persistent bidirectional connections.
+    \item Managed relational database for durable records.
+    \item In-memory store for ephemeral lobby and matchmaking state.
     \item Authentication approach (token-based or session-based).
-    \item Object storage for optional attachments.
+    \item Object storage for optional profile assets.
     \item Test framework for unit/integration tests.
     \item CI runner and staging deployment target.
 \end{itemize}
-We will use these low latency components to focus on workflow design, correctness, and measurement rather than inventing new infrastructure.
+We will use these low latency components to focus on real-time
+state design, correctness and measurement rather than inventing
+new infrastructure.
 
 \section{Project scope and deliverables %
 \BvrHint{\ldots iteration-friendly}}
 \subsection{Initial deliverable %
 \BvrHint{\ldots first iteration}}
 \begin{itemize}[leftmargin=0.7cm]
-    \item Basic logging and timestamps for latency measurement
-    \item CI: build + backend unit tests + linting
-    \item CD to staging with a single command or pipeline job
+    \item Single-player timed run on the existing typing surface, with WPM and accuracy computed from server-recorded start and finish timestamps.
+    \item Account creation and sign-in.
+    \item Structured logging and timestamps for latency measurement.
+    \item CI: build + type-check + lint + backend unit tests.
+    \item CD to staging with a single command or pipeline job.
 \end{itemize}
 
 \subsection{Subsequent deliverables}
 \begin{itemize}[leftmargin=0.7cm]
-    \item Lightweight game lobbies. Lobby creation without users
-    \item A heatmap of activity
-    \item Match making
+    \item Two-player real-time race lobby with a shared prompt and live opponent progress.
+    \item Rating computation and a global leaderboard.
+    \item Rating-based matchmaking.
+    \item Fair-play validation and a verified marker on qualifying results.
+    \item Scheduled contests with standings and post-contest rating updates.
+    \item Profile statistics and an activity heatmap.
 \end{itemize}
 
 \section{Summary}
-This project proposes a deployable web platform to allow users to practice their typing skills and compete with same level of skill.
-It meets the course criteria by emphasizing time-to-value through rapid iterations, implementing CI/CD to support frequent safe releases,
-and using measurable evaluation criteria (especially latency). It remains focused on engineering workflow and scalability readiness rather than research-driven novelty.
+This project proposes a deployable web platform on which users
+can practise typing, race skill-matched opponents, and obtain a
+speed figure that is computed and validated server-side rather
+than merely asserted. It meets the course criteria by emphasizing
+time-to-value through rapid iterations, implementing CI/CD to
+support frequent safe releases, and using measurable evaluation
+criteria (especially latency). It remains focused on engineering
+workflow and scalability readiness rather than research-driven
+novelty.
 
 \end{document}
