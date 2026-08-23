@@ -1,9 +1,11 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "auth:migrate": "bunx @better-auth/cli migrate"
   },
   "dependencies": {
+    "better-auth": "^1.2.0",
     "hono": "^4.13.2"
   },
   "devDependencies": {

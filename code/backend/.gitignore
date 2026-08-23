@@ -1,2 +1,11 @@
 # deps
 node_modules/
+
+# env files
+.env*
+
+# database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
