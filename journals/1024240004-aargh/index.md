@@ -5,3 +5,7 @@ Name: Aargh Rai
 
 # Week 1
 Designed the landing page typing screen
+
+# Week 2
+Socket.io setup on the backend, /realtime
+

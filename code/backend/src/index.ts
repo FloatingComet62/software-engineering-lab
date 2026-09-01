@@ -6,6 +6,8 @@ import { onError } from "./lib/errors";
 import { lobbyRoutes } from "./lobby/routes";
 import { sweepStaleLobbies } from "./lobby/service";
 import { profileRoutes } from "./profile/routes";
+import { raceRoutes } from "./race/routes";
+import { createRealtime } from "./realtime/io";
 
 const app = new Hono();
 
@@ -41,10 +43,36 @@ app.use("*", async (c, next) => {
 });
 
 app.route("/api/lobbies", lobbyRoutes);
+app.route("/api/races", raceRoutes);
 app.route("/api/profile", profileRoutes);
 
 app.get("/", (c) => c.text("I See I Type — API"));
 app.get("/health", (c) => c.json({ ok: true, serverTime: Date.now() }));
+
+/**
+ * Realtime.
+ *
+ * The Bun engine owns the WebSocket upgrade, so `engine.handler()` supplies
+ * the `websocket` handlers to `Bun.serve` while Hono keeps the `fetch` path.
+ * Engine.io's own HTTP traffic (the polling transport and the upgrade
+ * request) is routed to `engine.handleRequest`, which needs the Bun server
+ * instance — Hono exposes it as `c.env`.
+ */
+const { engine } = createRealtime();
+
+const handleEngineRequest = (c: { req: { raw: Request }; env: unknown }) =>
+  engine.handleRequest(c.req.raw, c.env as never);
+
+// Both forms: the handshake hits `/socket.io/` exactly, later polling
+// requests carry a suffix.
+app.all(config.socket.path, handleEngineRequest);
+app.all(`${config.socket.path}*`, handleEngineRequest);
+
+/** Housekeeping: drop lobbies nobody has touched in hours. */
+setInterval(() => {
+  const swept = sweepStaleLobbies();
+  if (swept > 0) console.log(`[sweeper] removed ${swept} stale lobbies`);
+}, config.lobby.sweepIntervalMs);
 
 console.log(
   `[server] listening on http://localhost:${config.port} (socket path ${config.socket.path})`,
