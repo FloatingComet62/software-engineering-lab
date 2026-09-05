@@ -5,3 +5,6 @@ Name: Amitoj Singh
 
 # Week 1
 Created the heatmap on profile page
+
+# Week 2
+Frontend login flow
