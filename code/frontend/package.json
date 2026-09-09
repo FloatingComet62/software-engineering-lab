@@ -10,9 +10,11 @@
     "format": "biome format --write"
   },
   "dependencies": {
+    "better-auth": "^1.2.0",
     "next": "16.3.1",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.2",
