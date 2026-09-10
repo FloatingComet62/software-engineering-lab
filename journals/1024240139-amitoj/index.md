@@ -4,10 +4,10 @@ Roll No. 1024240139
 Name: Amitoj Singh
 
 # Week 1
-Designed Profile Page
+Created the heatmap on profile page
 
 # Week 2
-Sockets on the frontend
+Frontend login flow
 
 # Week 3
 Verifying tests and dependency fixes
