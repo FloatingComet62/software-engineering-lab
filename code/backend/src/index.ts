@@ -5,6 +5,7 @@ import { config } from "./lib/config";
 import { onError } from "./lib/errors";
 import { lobbyRoutes } from "./lobby/routes";
 import { sweepStaleLobbies } from "./lobby/service";
+import { profileRoutes } from "./profile/routes";
 import { raceRoutes } from "./race/routes";
 import { createRealtime } from "./realtime/io";
 
@@ -43,6 +44,7 @@ app.use("*", async (c, next) => {
 
 app.route("/api/lobbies", lobbyRoutes);
 app.route("/api/races", raceRoutes);
+app.route("/api/profile", profileRoutes);
 
 app.get("/", (c) => c.text("I See I Type — API"));
 app.get("/health", (c) => c.json({ ok: true, serverTime: Date.now() }));

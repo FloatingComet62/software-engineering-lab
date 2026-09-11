@@ -85,6 +85,14 @@ CREATE TABLE IF NOT EXISTS race_result (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_result_race_user ON race_result (race_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_result_user           ON race_result (user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS profile (
+  user_id    TEXT PRIMARY KEY,
+  name       TEXT NOT NULL,
+  email      TEXT NOT NULL,
+  best_score REAL NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL
+);
 `;
 
 db.exec(SCHEMA);
