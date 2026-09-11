@@ -1,12 +1,20 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit",
+    "auth:migrate": "bun run src/scripts/migrate-auth.ts"
   },
   "dependencies": {
-    "hono": "^4.13.2"
+    "@socket.io/bun-engine": "^0.1.2",
+    "better-auth": "^1.2.0",
+    "hono": "^4.13.2",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "typescript": "^5.9.2"
   }
 }

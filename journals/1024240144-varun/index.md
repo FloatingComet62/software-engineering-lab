@@ -8,3 +8,6 @@ Name: Varun Bothra
 
 # Week 2
 03 September - Added profile backend and db migrations
+
+# Week 3
+11 Sepetember - Fixed lobby CRUD bugs before presentation
