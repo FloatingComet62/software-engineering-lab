@@ -1,0 +1,3 @@
+dev:
+  bun run auth:migrate
+  bun run dev
