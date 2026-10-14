@@ -81,6 +81,9 @@ export type RaceTickPayload = {
 };
 
 export type RaceFinishSummary = {
+  ratingBefore?: number;
+  ratingAfter?: number;
+  ratingChange?: number;
   userId: string;
   displayName: string;
   position: number | null;

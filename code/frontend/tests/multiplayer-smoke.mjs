@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 const base = process.env.TEST_BACKEND_URL ?? "http://localhost:8787";
 const origin = process.env.TEST_FRONTEND_URL ?? "http://localhost:3000";
 const clients = [];
+const ranked = process.env.RATED_SMOKE === "true";
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function once(socket, event, timeout = 20000) {
   return new Promise((resolve, reject) => {
@@ -65,7 +66,7 @@ try {
   const player = await account("Smoke Racer");
   const { lobby } = await request(host, "/lobbies", {
     visibility: "private",
-    rated: false,
+    rated: ranked,
     promptLength: "short",
   });
   await request(player, "/lobbies/join", { code: lobby.code });
@@ -169,6 +170,37 @@ try {
     a.results.find((result) => result.userId === host.user.id).accuracy < 1,
     true,
   );
+  if (ranked) {
+    const winner = a.results.find((result) => result.userId === host.user.id);
+    const loser = a.results.find((result) => result.userId === player.user.id);
+    assert.equal(winner.ratingBefore, 1000);
+    assert.equal(winner.ratingAfter, 1016);
+    assert.equal(winner.ratingChange, 16);
+    assert.equal(loser.ratingAfter, 984);
+    assert.equal(loser.ratingChange, -16);
+    const response = await fetch(`${base}/api/profile`, {
+      headers: { Cookie: host.cookies, Origin: origin },
+    });
+    const { profile } = await response.json();
+    assert.equal(profile.rating, 1016);
+    assert.equal(profile.races, 1);
+    assert.equal(profile.wins, 1);
+    assert.equal(profile.provisional, true);
+    const history = await fetch(`${base}/api/lobbies/${lobby.id}/races`, {
+      headers: { Cookie: host.cookies, Origin: origin },
+    });
+    const saved = await history.json();
+    assert.equal(
+      saved.races[0].results.find((result) => result.userId === host.user.id)
+        .ratingChange,
+      16,
+    );
+    console.log(
+      "PASS: ranked rating changes, profile persistence and saved race history",
+    );
+  } else {
+    assert.ok(a.results.every((result) => result.ratingChange === undefined));
+  }
   console.log(
     "PASS: reliable finish, identical authoritative standings, accuracy and clean fair-play flags",
   );

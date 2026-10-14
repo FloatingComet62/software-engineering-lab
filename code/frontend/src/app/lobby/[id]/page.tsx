@@ -371,7 +371,8 @@ export default function LobbyPage() {
             <div className="mp-room-heading">
               <div>
                 <div className="eyebrow">
-                  PRIVATE ROOM / {lobby.rated ? "RATED" : "FRIENDLY RACE"}
+                  PRIVATE ROOM /{" "}
+                  {lobby.rated ? "RANKED · RATING AT STAKE" : "FRIENDLY RACE"}
                 </div>
                 <h1>{lobby.name}</h1>
               </div>
@@ -522,6 +523,7 @@ export default function LobbyPage() {
                             <th>Player</th>
                             <th>WPM</th>
                             <th>Accuracy</th>
+                            <th>Rating</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -543,6 +545,28 @@ export default function LobbyPage() {
                               </td>
                               <td>{Math.round(result.wpm)}</td>
                               <td>{Math.round(result.accuracy * 100)}%</td>
+                              <td>
+                                {result.ratingAfter !== undefined ? (
+                                  <>
+                                    {result.ratingAfter}
+                                    <small
+                                      className={
+                                        (result.ratingChange ?? 0) >= 0
+                                          ? "rating-gain"
+                                          : "rating-loss"
+                                      }
+                                    >
+                                      {" "}
+                                      {(result.ratingChange ?? 0) >= 0
+                                        ? "+"
+                                        : ""}
+                                      {result.ratingChange}
+                                    </small>
+                                  </>
+                                ) : (
+                                  "Unrated"
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>

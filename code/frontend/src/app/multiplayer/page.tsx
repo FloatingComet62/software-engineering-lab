@@ -10,6 +10,7 @@ export default function Multiplayer() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [code, setCode] = useState("");
+  const [ranked, setRanked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function enter(join: boolean) {
@@ -26,7 +27,7 @@ export default function Multiplayer() {
               : {
                   name: `${session?.user.name ?? "Your"}'s room`,
                   visibility: "private",
-                  rated: false,
+                  rated: ranked,
                   maxPlayers: 8,
                   promptLength: "short",
                 },
@@ -67,6 +68,15 @@ export default function Multiplayer() {
               Create a private room for up to eight players. Share the code and
               race together.
             </p>
+            <label className="mp-ranked-toggle">
+              <input
+                type="checkbox"
+                checked={ranked}
+                onChange={(event) => setRanked(event.target.checked)}
+                disabled={busy}
+              />{" "}
+              Ranked race <span>affects Typing Rating</span>
+            </label>
             <button
               type="button"
               className="mp-primary"

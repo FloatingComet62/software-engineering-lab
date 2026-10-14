@@ -2,143 +2,149 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { type ApiErrorBody, api } from "@/lib/api";
+import { api } from "@/lib/api";
 
-type Profile = { name: string; email: string; bestScore: number };
-
-const WEEKS = 53;
-const LEVEL_COLORS = [
-  "bg-zinc-900",
-  "bg-emerald-900",
-  "bg-emerald-700",
-  "bg-emerald-500",
-  "bg-emerald-300",
-];
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-// ponytail: hardcoded placeholder activity; swap for race_result counts per day when wired.
-const HEATMAP = Array.from({ length: WEEKS }, (_, w) => ({
-  id: `w${w}`,
-  month: w % 4.4 < 1 ? MONTHS[Math.floor(w / 4.4)] : "",
-  days: Array.from({ length: 7 }, (_, d) => {
-    const n = Math.imul(w * 7 + d + 1, 2654435761);
-    const noise = ((n ^ (n >>> 13)) >>> 0) % 100;
-    const busySeason = w > 30 && w < 48 ? 25 : 0;
-    const score = noise + busySeason;
-    const level =
-      score < 45 ? 0 : score < 65 ? 1 : score < 80 ? 2 : score < 92 ? 3 : 4;
-    return { id: `w${w}d${d}`, level };
-  }),
-}));
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+type Rating = {
+  rating: number;
+  tier: string;
+  races: number;
+  wins: number;
+  provisional: boolean;
+  placementRemaining: number;
+};
+type Profile = Rating & { name: string; email: string; bestScore: number };
+type Leader = Rating & { rank: number; userId: string; name: string };
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
+  const [leaders, setLeaders] = useState<Leader[]>([]);
+  const [error, setError] = useState("");
   useEffect(() => {
-    api<{ profile: Profile }>("/profile")
-      .then(({ profile }) => setProfile(profile))
-      .catch((err: ApiErrorBody) => setError(err.message));
+    Promise.all([
+      api<{ profile: Profile }>("/profile"),
+      api<{ players: Leader[] }>("/profile/leaderboard"),
+    ])
+      .then(([data, board]) => {
+        setProfile(data.profile);
+        setLeaders(board.players);
+      })
+      .catch((err: { message?: string }) =>
+        setError(
+          err.message ?? "Could not load your rating. Please try again.",
+        ),
+      );
   }, []);
-
-  const total = HEATMAP.flatMap((week) => week.days).filter(
-    (day) => day.level > 0,
-  ).length;
-
   return (
-    <div className="flex min-h-screen flex-1 flex-col items-center bg-zinc-900 px-4 py-12 font-mono text-white">
-      <div className="flex w-full max-w-4xl flex-col gap-8">
-        <Link href="/" className="text-sm text-zinc-400 hover:text-white">
-          ← Back
+    <div className="typing-app">
+      <header className="site-header">
+        <Link href="/" className="brand">
+          i see i type<span className="brand-dot">.</span>
         </Link>
-
+        <Link href="/multiplayer" className="mp-muted">
+          multiplayer ↗
+        </Link>
+      </header>
+      <main className="mp-room rating-profile">
+        <div className="eyebrow">YOUR COMPETITIVE JOURNEY</div>
+        <h1>{profile?.name ?? "Your profile"}</h1>
         {error && (
-          <p className="rounded bg-red-500/10 px-3 py-2 text-sm text-red-400">
-            {error}
+          <p className="mp-error" role="alert">
+            {error} <Link href="/login">Sign in</Link>
           </p>
         )}
-
-        <section className="grid gap-4 rounded-lg border border-zinc-700 bg-zinc-800 p-8 sm:grid-cols-3">
-          <Field label="Name" value={profile?.name} />
-          <Field label="Email" value={profile?.email} />
-          <Field
-            label="Best score"
-            value={profile ? `${Math.round(profile.bestScore)} WPM` : undefined}
-          />
-        </section>
-
-        <section className="flex flex-col gap-3 rounded-lg border border-zinc-700 bg-zinc-800 p-8">
-          <h2 className="text-sm text-zinc-300">
-            {total} active days in the last year
-          </h2>
-          <div className="overflow-x-auto">
-            <div className="inline-flex flex-col gap-1">
-              <div className="flex gap-[3px] pl-8 text-[10px] text-zinc-500">
-                {HEATMAP.map((week) => (
-                  <span key={week.id} className="w-[11px]">
-                    {week.month}
-                  </span>
-                ))}
+        {!profile && !error && <p className="intro">Loading your rating…</p>}
+        {profile && (
+          <>
+            <section className="mp-panel rating-hero">
+              <div>
+                <span className="mp-overline">TYPING RATING</span>
+                <div className="rating-number">{profile.rating}</div>
+                <span className="rating-tier">
+                  {profile.tier}
+                  {profile.provisional ? " · provisional" : ""}
+                </span>
               </div>
-              <div className="flex gap-[3px]">
-                <div className="flex w-7 flex-col gap-[3px] text-[10px] text-zinc-500">
-                  {DAYS.map((day, i) => (
-                    <span key={day} className="h-[11px] leading-[11px]">
-                      {i % 2 ? day : ""}
-                    </span>
-                  ))}
+              <div className="rating-summary">
+                <div>
+                  <strong>{profile.races}</strong>
+                  <span>ranked races</span>
                 </div>
-                {HEATMAP.map((week) => (
-                  <div key={week.id} className="flex flex-col gap-[3px]">
-                    {week.days.map((day) => (
-                      <div
-                        key={day.id}
-                        title={`${day.level} race${day.level === 1 ? "" : "s"}`}
-                        className={`h-[11px] w-[11px] rounded-sm ${LEVEL_COLORS[day.level]}`}
-                      />
-                    ))}
-                  </div>
-                ))}
+                <div>
+                  <strong>{profile.wins}</strong>
+                  <span>wins</span>
+                </div>
               </div>
+            </section>
+            <p className="intro rating-help">
+              {profile.provisional
+                ? `${profile.placementRemaining} more ranked races to establish your rating and appear on the leaderboard.`
+                : "Your rating reflects how you perform against other typists."}
+            </p>
+            <Link href="/multiplayer" className="mp-primary rating-cta">
+              Play a ranked race →
+            </Link>
+          </>
+        )}
+        <section className="mp-panel rating-board">
+          <span className="mp-overline">THE LEADERBOARD</span>
+          <h2>Meet your next challenge.</h2>
+          <p>
+            Established typists with at least 10 rated races. Updated after
+            every ranked race.
+          </p>
+          {leaders.length ? (
+            <div className="mp-results-scroll">
+              <table className="mp-results">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Typist</th>
+                    <th>Rating</th>
+                    <th>Tier</th>
+                    <th>Wins</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaders.map((leader) => (
+                    <tr key={leader.userId}>
+                      <td>#{leader.rank}</td>
+                      <td>{leader.name}</td>
+                      <td>{leader.rating}</td>
+                      <td>{leader.tier}</td>
+                      <td>{leader.wins}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
-          <div className="flex items-center justify-end gap-1 text-[10px] text-zinc-500">
-            Less
-            {LEVEL_COLORS.map((color) => (
-              <div
-                key={color}
-                className={`h-[11px] w-[11px] rounded-sm ${color}`}
-              />
-            ))}
-            More
-          </div>
+          ) : (
+            <p className="keyboard-hint">
+              The starting line is open. Complete 10 rated races to earn your
+              spot.
+            </p>
+          )}
         </section>
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs uppercase tracking-wide text-zinc-500">
-        {label}
-      </span>
-      <span className="truncate text-lg">{value ?? "—"}</span>
+        <section className="rating-explainer">
+          <h2>Skill, relative to the competition.</h2>
+          <p>
+            Everyone starts at 1000. Beat stronger opponents to earn more;
+            losses against stronger typists cost less. Multiplayer races average
+            your result against each opponent, with up to 32 points changing
+            hands per race. Finishers beat non-finishers; non-finishers tie with
+            each other.
+          </p>
+          <p>
+            Friendly races and solo practice don’t affect your rating. Cancelled
+            races, races without a finisher, and races with fair-play flags are
+            unrated. Ratings measure competitive results, rather than a fixed
+            words-per-minute target.
+          </p>
+          <p className="mp-muted">
+            Bronze &lt;1000 · Silver 1000 · Gold 1200 · Platinum 1400 · Diamond
+            1600 · Master 1800
+          </p>
+        </section>
+      </main>
     </div>
   );
 }
