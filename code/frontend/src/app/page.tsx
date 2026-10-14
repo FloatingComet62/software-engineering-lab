@@ -17,7 +17,7 @@ export default function Home() {
   const [started, setStarted] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [focused, setFocused] = useState(false);
-  const [theme, setTheme] = useState("lavender");
+  const [theme, setTheme] = useState("graphite");
   const input = useRef<HTMLTextAreaElement>(null);
   const text = passages[round % passages.length];
   const finished =
@@ -238,7 +238,7 @@ export default function Home() {
         <span>Made for the love of the little clicks.</span>
         <div className="theme-picker">
           <span>make it yours</span>
-          {["lavender", "sage", "peach"].map((color) => (
+          {["graphite", "lavender", "sage", "peach"].map((color) => (
             <button
               key={color}
               type="button"
