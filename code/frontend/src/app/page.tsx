@@ -60,6 +60,7 @@ export default function Home() {
         </Link>
         <nav aria-label="Main navigation">
           <span className="nav-active">⌨ &nbsp; practice</span>
+          <Link href="/multiplayer">multiplayer</Link>
           <Link href="/profile">↗ &nbsp; your progress</Link>
         </nav>
         <Link
@@ -228,6 +229,9 @@ export default function Home() {
             <span>correct characters</span>
           </div>
         </div>
+        <p className="mp-solo-invite">
+          <Link href="/multiplayer">Race with friends ↗</Link>
+        </p>
         <p className="keyboard-hint">
           <kbd>esc</kbd> restart test <span>·</span> take a breath, then take
           your time

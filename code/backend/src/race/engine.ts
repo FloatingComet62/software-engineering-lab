@@ -13,8 +13,8 @@ import type {
  * without Socket.IO. `RaceManager` drives it with timers and broadcasts.
  *
  * Everything that ends up in a result is computed from the server's own clock.
- * The client only ever tells us two numbers — where its caret is and how many
- * keys it has pressed — and both are clamped before use.
+ * The client only ever tells us two numbers â€” where its caret is and how many
+ * keys it has pressed â€” and both are clamped before use.
  */
 
 export type RaceRuntimeStatus = "countdown" | "running" | "finished" | "aborted";
@@ -146,7 +146,7 @@ export class Race {
    *
    * Returns whether this report completed the passage, so the caller can emit
    * `race:player_finished`. Reports outside a running race are ignored rather
-   * than rejected — a keystroke in flight during the countdown is normal.
+   * than rejected â€” a keystroke in flight during the countdown is normal.
    */
   applyProgress(
     userId: string,
@@ -188,7 +188,8 @@ export class Race {
     participant.maxCursor = Math.max(participant.maxCursor, cursor);
     // Monotonic: a client that under-reports cannot lower its own key count.
     participant.keystrokes = Math.max(participant.keystrokes, keystrokes);
-    participant.lastProgressAt = now;
+    // Idle heartbeats must not shorten the rate window for the next real key.
+    if (jump > 0) participant.lastProgressAt = now;
     this.dirty.add(userId);
 
     if (participant.maxCursor >= this.length) {
@@ -249,7 +250,7 @@ export class Race {
    * Cursor updates for participants that moved since the last call.
    *
    * This is the only payload sent while people are typing, and it carries no
-   * mistake information by design — see `realtime/events.ts`.
+   * mistake information by design â€” see `realtime/events.ts`.
    */
   drainCursorUpdates(now: number): CursorUpdate[] {
     if (this.dirty.size === 0) return [];

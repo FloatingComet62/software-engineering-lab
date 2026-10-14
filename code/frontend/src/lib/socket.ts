@@ -1,25 +1,7 @@
 import { io, type Socket } from "socket.io-client";
-import { type ApiErrorBody, BACKEND_URL, type LobbySnapshot } from "./api";
+import { BACKEND_URL, type LobbySnapshot } from "./api";
 
-// Lobby slice of backend/src/realtime/events.ts; race events come later.
-type ServerToClientEvents = {
-  "lobby:state": (snapshot: LobbySnapshot) => void;
-  "lobby:closed": (payload: { lobbyId: string; reason: string }) => void;
-  "lobby:removed": (payload: { lobbyId: string; reason: string }) => void;
-};
-
-type Ack<T> = { ok: true; data: T } | { ok: false; error: ApiErrorBody };
-
-type ClientToServerEvents = {
-  "lobby:join": (
-    payload: { lobbyId: string },
-    ack: (res: Ack<{ snapshot: LobbySnapshot; race: unknown }>) => void,
-  ) => void;
-  "lobby:leave": (
-    payload: { lobbyId: string },
-    ack: (res: Ack<{ left: true }>) => void,
-  ) => void;
-};
+import type { ClientToServerEvents, ServerToClientEvents } from "./race-events";
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
@@ -36,16 +18,28 @@ export function getSocket() {
 
 export function joinLobby(lobbyId: string) {
   return new Promise<LobbySnapshot>((resolve, reject) => {
-    getSocket().emit("lobby:join", { lobbyId }, (res) =>
-      res.ok ? resolve(res.data.snapshot) : reject(res.error),
-    );
+    getSocket()
+      .timeout(8000)
+      .emit("lobby:join", { lobbyId }, (err, res) =>
+        err
+          ? reject(new Error("The room did not respond. Please reconnect."))
+          : res.ok
+            ? resolve(res.data.snapshot)
+            : reject(res.error),
+      );
   });
 }
 
 export function leaveLobby(lobbyId: string) {
   return new Promise<void>((resolve, reject) => {
-    getSocket().emit("lobby:leave", { lobbyId }, (res) =>
-      res.ok ? resolve() : reject(res.error),
-    );
+    getSocket()
+      .timeout(5000)
+      .emit("lobby:leave", { lobbyId }, (err, res) =>
+        err
+          ? reject(new Error("The room did not respond."))
+          : res.ok
+            ? resolve()
+            : reject(res.error),
+      );
   });
 }

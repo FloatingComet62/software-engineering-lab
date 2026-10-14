@@ -158,3 +158,12 @@ describe("fair play", () => {
     expect([...race.get("a")!.flags]).toEqual([]);
   });
 });
+
+
+test("idle heartbeats do not falsely flag the next ordinary keystroke", () => {
+  const race = runningRace();
+  race.applyProgress("a", 1, 1, T0 + 120);
+  race.applyProgress("a", 1, 1, T0 + 239);
+  race.applyProgress("a", 2, 2, T0 + 240);
+  expect([...race.get("a")!.flags]).toEqual([]);
+});

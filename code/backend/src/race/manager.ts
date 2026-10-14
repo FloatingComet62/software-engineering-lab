@@ -88,6 +88,10 @@ class RaceManager {
       );
     }
 
+    if (racers.some((member) => member.user_id !== host.id && member.is_ready !== 1)) {
+      throw ApiError.conflict("players_not_ready", "Wait for every connected player to be ready.");
+    }
+
     const now = Date.now();
     const text = normalizePrompt(pickPrompt(lobby.prompt_length));
     const race = new Race(
