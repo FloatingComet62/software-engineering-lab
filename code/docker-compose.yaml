@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    ports:
+      - "4822:8080"
+    environment:
+      FRONTEND_URL: "https://iseeitype.aarghrai.com,http://localhost:3000"
+      PORT: 8080
+      APP_DB_PATH: "./data/app.db"
+      AUTH_DB_PATH: "./data/auth.db"
+      MIN_PLAYERS_TO_START: 2
+    volumes:
+      - backend_data:/usr/src/app/data
+    restart: unless-stopped
+volumes:
+  backend_data:

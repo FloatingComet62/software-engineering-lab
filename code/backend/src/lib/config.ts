@@ -16,8 +16,10 @@ const frontendUrls = (process.env.FRONTEND_URL ?? "http://localhost:3000")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+
 export const config = {
   port: int(process.env.PORT, 8787),
+  authFile: process.env.AUTH_DB_PATH ?? "./auth.db",
 
   /** Every allowed browser origin (CORS + better-auth trusted origins). */
   frontendUrls,
